@@ -158,23 +158,17 @@ export default function AuthPage() {
       </div>
 
       {/* 하단 캐릭터 */}
-      <div className="flex items-end justify-center gap-4 mt-6 w-full max-w-sm px-4">
+      <div className="flex flex-col items-center mt-6 w-full max-w-sm px-4">
         <img
-          src="/assets/characters/dog_happy.png"
-          alt="강아지"
-          className="w-24 h-24 object-contain drop-shadow-md"
-          style={{ transform: 'scaleX(-1)' }}
+          src="/assets/dogandcat.png"
+          alt="강아지와 고양이"
+          className="w-full object-contain drop-shadow-md"
         />
-        <div className="flex flex-col items-center gap-1 mb-2">
-          <span className="text-2xl">🩷</span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-base">🐾</span>
           <span className="text-gray-400 text-[10px] font-medium">교육 공공데이터 AI활용 프로젝트</span>
           <span className="text-base">🐾</span>
         </div>
-        <img
-          src="/assets/characters/cat_happy.png"
-          alt="고양이"
-          className="w-24 h-24 object-contain drop-shadow-md"
-        />
       </div>
     </div>
   )
