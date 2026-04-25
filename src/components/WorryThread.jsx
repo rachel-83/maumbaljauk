@@ -220,7 +220,7 @@ export default function WorryThread({
       </div>
 
       {/* 스크롤 */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-36 scrollbar-hide">
         <div className="glass rounded-3xl p-4 mb-4 shadow-sm">
           {worry.title && <p className="text-sm font-bold text-gray-800 mb-2">{worry.title}</p>}
           <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{worry.content}</p>
@@ -241,7 +241,7 @@ export default function WorryThread({
 
       {/* 입력창 */}
       {showInput && (
-        <div className={`${viewerRole === 'teacher' ? '' : 'fixed bottom-[56px] left-1/2 -translate-x-1/2 w-full max-w-[420px]'} px-4 py-2 glass-strong border-t border-gray-100 z-[110]`}>
+        <div className={`${viewerRole === 'teacher' ? '' : 'fixed bottom-[68px] left-1/2 -translate-x-1/2 w-full max-w-[420px]'} px-4 py-2 glass-strong border-t border-gray-100 z-[110]`}>
           {/* 인용 박스 */}
           {replyTo && !editingMsg && (
             <div className="flex items-center gap-2 bg-primary-50 rounded-xl px-3 py-2 mb-2 border border-primary-200">
