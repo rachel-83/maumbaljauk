@@ -52,8 +52,8 @@ export default function AuthPage() {
         <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-200">
           <span className="text-4xl">🐾</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">말동무</h1>
-        <p className="text-xs text-gray-400 mt-1">말 못하는 마음을 대신 들어주는 친구</p>
+        <h1 className="text-2xl font-bold text-gray-800">마음발자국</h1>
+        <p className="text-xs text-gray-400 mt-1">AI펫과 편하게 대화해봐</p>
       </div>
 
       {/* 카드 */}
@@ -104,7 +104,7 @@ export default function AuthPage() {
             disabled={loading}
             className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white rounded-2xl text-sm font-bold disabled:opacity-60 shadow-md shadow-primary-200 active:scale-[0.98] transition-all"
           >
-            {loading ? '잠깐만...' : mode === 'login' ? '로그인' : '가입하기'}
+            {loading ? '잠깐만...' : mode === 'login' ? '대화하러가기' : '가입하기'}
           </button>
         </form>
       </div>
