@@ -212,7 +212,7 @@ export default function TeacherDashboard() {
 
   // ── 기본 대시보드 ─────────────────────────────────────────
   return (
-    <div className="min-h-dvh bg-gray-50 pt-11 pb-20">
+    <div className="min-h-dvh bg-gray-50 pt-11 pb-32">
       <header className="bg-white px-4 py-4 shadow-sm">
         <h1 className="text-lg font-bold flex items-center gap-2">👩‍🏫 선생님 대시보드</h1>
         <p className="text-xs text-gray-500 mt-0.5">

@@ -401,7 +401,7 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="pb-36 px-4 pt-16 min-h-dvh">
+    <div className="pb-32 px-4 pt-16 min-h-dvh">
       <h1 className="text-xl font-bold text-gray-800 mb-3">📊 주간 감정 레포트</h1>
 
       {/* 주차 네비게이터 */}

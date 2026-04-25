@@ -125,7 +125,7 @@ export default function WorryPage() {
   // ── 목록 화면 ──────────────────────────────────────────────
   if (view === 'list') {
     return (
-      <div className="min-h-dvh pt-16 pb-24 px-4 bg-transparent">
+      <div className="min-h-dvh pt-16 pb-32 px-4 bg-transparent">
         <button
           onClick={() => navigate(-1)}
           className="text-sm text-gray-500 mb-4"
@@ -196,7 +196,7 @@ export default function WorryPage() {
   // ── 작성 화면 ──────────────────────────────────────────────
   if (view === 'compose') {
     return (
-      <div className="min-h-dvh pt-16 pb-24 px-4 bg-transparent">
+      <div className="min-h-dvh pt-16 pb-32 px-4 bg-transparent">
         <button onClick={() => setView('list')} className="text-sm text-gray-500 mb-5">
           ← 취소
         </button>

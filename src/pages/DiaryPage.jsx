@@ -161,7 +161,7 @@ export default function DiaryPage() {
     const weekDays = getThisWeekDays()
 
     return (
-      <div className="min-h-dvh pb-24 pt-16 bg-transparent">
+      <div className="min-h-dvh pb-32 pt-16 bg-transparent">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 mb-5">
           <div className="flex items-center gap-3">
@@ -272,7 +272,7 @@ export default function DiaryPage() {
     const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
 
     return (
-      <div className="min-h-dvh pb-24 pt-16 bg-transparent">
+      <div className="min-h-dvh pb-32 pt-16 bg-transparent">
         <div className="flex items-center justify-between px-5 mb-5">
           <div className="flex items-center gap-3">
             <button onClick={() => setView('cal')} className="text-gray-300" aria-label="캘린더 보기">
@@ -366,7 +366,7 @@ export default function DiaryPage() {
   // ── 상세 뷰 ──────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     return (
-      <div className="min-h-dvh pt-11 pb-20 bg-transparent">
+      <div className="min-h-dvh pt-11 pb-32 bg-transparent">
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 pt-5 mb-8">
           <button onClick={() => { setShowMenu(false); setView('cal') }}
@@ -451,7 +451,7 @@ export default function DiaryPage() {
   const isDone = status === 'done'
 
   return (
-    <div className="min-h-dvh pt-11 pb-20 bg-transparent">
+    <div className="min-h-dvh pt-11 pb-32 bg-transparent">
       {/* 헤더 */}
       <div className="flex items-center justify-between px-5 pt-5 mb-6">
         <button

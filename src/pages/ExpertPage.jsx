@@ -93,7 +93,7 @@ export default function ExpertPage() {
   const list = tab === 'counseling' ? COUNSELING : ANIMALS
 
   return (
-    <div className="pb-20 px-4 pt-16 min-h-dvh">
+    <div className="pb-32 px-4 pt-16 min-h-dvh">
       <h1 className="text-xl font-bold text-gray-800 mb-2">🐾 마음발자국 도우미</h1>
       <p className="text-xs text-gray-500 mb-5">반려동물과 전문상담 선생님의 도움을 받을 수 있어요</p>
 

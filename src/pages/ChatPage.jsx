@@ -263,7 +263,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-dvh pt-11 pb-16">
+    <div className="flex flex-col h-dvh pt-11" style={{ paddingBottom: 'calc(4rem + env(safe-area-inset-bottom))' }}>
       {/* 헤더 (펫 아바타) */}
       <header className="px-4 py-3 glass-strong shadow-sm flex items-center gap-3">
         <img src={petImg} alt={petName} className="w-10 h-10 rounded-full object-cover shadow-sm" />
