@@ -121,6 +121,13 @@ export default function WorryThread({
     if (onRefresh) await onRefresh()
   }
 
+  async function handleDeletePost() {
+    if (!confirm('이 고민을 삭제할까?\n삭제하면 모든 대화 내용도 함께 사라져.')) return
+    await supabase.from('worry_messages').delete().eq('worry_id', worry.id)
+    await supabase.from('worries').delete().eq('id', worry.id)
+    if (onBack) onBack()
+  }
+
   const isMine = (m) => m.sender_id === myUid
   function senderName(m) {
     return m?.sender_role === viewerRole ? viewerLabel : otherLabel
@@ -267,12 +274,20 @@ export default function WorryThread({
               <div className="flex items-center justify-between mt-2">
                 <p className="text-[9px] text-gray-400">{formatTime(worry.created_at)}</p>
                 {viewerRole === 'student' && (
-                  <button
-                    onClick={() => { setPostDraft(worry.content); setEditingPost(true) }}
-                    className="text-[11px] text-gray-400 font-semibold hover:text-primary-500"
-                  >
-                    수정
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => { setPostDraft(worry.content); setEditingPost(true) }}
+                      className="text-[11px] text-gray-400 font-semibold hover:text-primary-500"
+                    >
+                      수정
+                    </button>
+                    <button
+                      onClick={handleDeletePost}
+                      className="text-[11px] text-red-400 font-semibold hover:text-red-500"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 )}
               </div>
             </>
