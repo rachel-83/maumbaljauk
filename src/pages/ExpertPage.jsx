@@ -58,7 +58,7 @@ const ANIMALS = [
     badge: '입양',
     badgeColor: 'bg-yellow-100 text-yellow-700',
     icon: '🐕',
-    link: 'https://www.animal.go.kr/front/awtis/protection/protectionList.do?menuNo=1000000060',
+    link: 'https://www.animal.go.kr/front/index.do',
     linkText: '바로가기',
   },
 ]
