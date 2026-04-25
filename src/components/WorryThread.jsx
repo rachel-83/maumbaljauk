@@ -12,11 +12,14 @@ export default function WorryThread({
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
   const [likes, setLikes] = useState({})
-  const [replyTo, setReplyTo] = useState(null)   // 답장 대상 메시지
+  const [replyTo, setReplyTo] = useState(null)
   const [showInput, setShowInput] = useState(viewerRole === 'teacher')
   const [editingMsg, setEditingMsg] = useState(null)
   const [menuMsg, setMenuMsg] = useState(null)
   const [myUid, setMyUid] = useState(null)
+  const [editingPost, setEditingPost] = useState(false)
+  const [postDraft, setPostDraft] = useState('')
+  const [savingPost, setSavingPost] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -105,6 +108,16 @@ export default function WorryThread({
     if (!confirm('댓글을 삭제할까?')) return
     setMenuMsg(null)
     await supabase.from('worry_messages').delete().eq('id', msgId)
+    if (onRefresh) await onRefresh()
+  }
+
+  // ── 원본 글 수정 ──────────────────────────────────────────
+  async function handleSavePost() {
+    if (!postDraft.trim() || savingPost) return
+    setSavingPost(true)
+    await supabase.from('worries').update({ content: postDraft.trim() }).eq('id', worry.id)
+    setSavingPost(false)
+    setEditingPost(false)
     if (onRefresh) await onRefresh()
   }
 
@@ -223,8 +236,47 @@ export default function WorryThread({
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-36 scrollbar-hide">
         <div className="glass rounded-3xl p-4 mb-4 shadow-sm">
           {worry.title && <p className="text-sm font-bold text-gray-800 mb-2">{worry.title}</p>}
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{worry.content}</p>
-          <p className="text-[9px] text-gray-400 mt-2">{formatTime(worry.created_at)}</p>
+
+          {editingPost ? (
+            <>
+              <textarea
+                value={postDraft}
+                onChange={e => setPostDraft(e.target.value)}
+                className="w-full min-h-[120px] text-sm text-gray-700 leading-relaxed bg-gray-50 border border-primary-200 rounded-2xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300"
+                autoFocus
+              />
+              <div className="flex gap-2 mt-2 justify-end">
+                <button
+                  onClick={() => setEditingPost(false)}
+                  className="text-xs text-gray-400 px-3 py-1.5 rounded-xl bg-gray-100"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSavePost}
+                  disabled={savingPost || !postDraft.trim()}
+                  className="text-xs text-white font-bold px-3 py-1.5 rounded-xl bg-primary-500 disabled:opacity-40"
+                >
+                  {savingPost ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{worry.content}</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-[9px] text-gray-400">{formatTime(worry.created_at)}</p>
+                {viewerRole === 'student' && (
+                  <button
+                    onClick={() => { setPostDraft(worry.content); setEditingPost(true) }}
+                    className="text-[11px] text-gray-400 font-semibold hover:text-primary-500"
+                  >
+                    수정
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="glass rounded-3xl shadow-sm px-3 py-1">
