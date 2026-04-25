@@ -66,11 +66,12 @@ export default function AuthPage() {
         <span className="absolute text-sm" style={{ bottom: 16, right: -14, opacity: 0.6 }}>✨</span>
 
         {/* 아이콘 */}
-        <div
-          className="w-24 h-24 mx-auto mb-4 rounded-3xl flex items-center justify-center shadow-xl"
-          style={{ background: 'linear-gradient(135deg, #9575cd 0%, #7e57c2 100%)', boxShadow: '0 8px 32px rgba(126,87,194,0.35)' }}
-        >
-          <span className="text-5xl">🐾</span>
+        <div className="w-24 h-24 mx-auto mb-4">
+          <img
+            src="/assets/paw_icon.png"
+            alt="마음발자국 아이콘"
+            className="w-full h-full object-contain drop-shadow-xl"
+          />
         </div>
 
         <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">마음발자국</h1>
