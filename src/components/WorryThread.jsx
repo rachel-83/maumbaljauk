@@ -235,13 +235,24 @@ export default function WorryThread({
         <button onClick={onBack} className="text-xs text-gray-500">{'\u2190'} 목록</button>
         <div className="mt-2 flex items-center justify-between">
           <p className="text-sm font-bold text-gray-800">{'\uD83D\uDCAC'} {otherLabel}과 대화</p>
-          <span className="text-[9px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-semibold">익명 보호됨</span>
+          <div className="flex items-center gap-1.5">
+            {messages.some(m => m.sender_role === 'teacher') ? (
+              <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">답변완료</span>
+            ) : (
+              <span className="text-[9px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-semibold">답변 대기중</span>
+            )}
+            <span className="text-[9px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-semibold">익명 보호됨</span>
+          </div>
         </div>
       </div>
 
       {/* 스크롤 */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-36 scrollbar-hide">
         <div className="glass rounded-3xl p-4 mb-4 shadow-sm">
+          {/* 수정됨 표시 */}
+          {new Date(worry.updated_at) - new Date(worry.created_at) > 60000 && (
+            <span className="inline-block text-[9px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-semibold mb-2">수정됨</span>
+          )}
           {worry.title && <p className="text-sm font-bold text-gray-800 mb-2">{worry.title}</p>}
 
           {editingPost ? (

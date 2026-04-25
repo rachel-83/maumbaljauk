@@ -34,6 +34,7 @@ export default function WorryPage() {
   const [worries, setWorries] = useState([])
   const [selected, setSelected] = useState(null)
   const [messages, setMessages] = useState([])
+  const [teacherReplied, setTeacherReplied] = useState({}) // worryId → boolean
 
   // 작성 폼
   const [title, setTitle] = useState('')
@@ -71,7 +72,21 @@ export default function WorryPage() {
       .eq('student_id', session.user.id)
       .order('updated_at', { ascending: false })
     if (error) console.error('worries load:', error)
-    setWorries(data || [])
+    const list = data || []
+    setWorries(list)
+
+    // 교사 답변 여부 배치 조회
+    if (list.length > 0) {
+      const ids = list.map(w => w.id)
+      const { data: msgs } = await supabase
+        .from('worry_messages')
+        .select('worry_id, sender_role')
+        .in('worry_id', ids)
+        .eq('sender_role', 'teacher')
+      const replied = {}
+      ;(msgs || []).forEach(m => { replied[m.worry_id] = true })
+      setTeacherReplied(replied)
+    }
   }
 
   useEffect(() => { loadWorries() }, [session])
@@ -177,11 +192,15 @@ export default function WorryPage() {
                     {formatTime(w.updated_at)} ·
                     {w.target_type === 'counselor' ? ' 상담선생님' : ' 담임선생님'}
                   </p>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-semibold ${
-                    w.status === 'open' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {w.status === 'open' ? '대화 중' : '종료'}
-                  </span>
+                  {w.status === 'open' ? (
+                    teacherReplied[w.id] ? (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-600">답변완료</span>
+                    ) : (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-600">답변 대기중</span>
+                    )
+                  ) : (
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-semibold bg-gray-100 text-gray-400">종료</span>
+                  )}
                 </div>
                 {w.title && <p className="text-sm font-bold text-gray-800 mb-1">{w.title}</p>}
                 <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{w.content}</p>
