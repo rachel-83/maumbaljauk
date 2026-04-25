@@ -262,13 +262,27 @@ export default function ReportPage() {
     // ── 반려동물 체험 추천 트리거 체크 ──────────────────────
     checkPetRecommendation(weekDiaryData ?? [], chatLogs ?? [], weekDates)
 
-    // ── TOP 5 긍정/부정 단어 분석 (해당 주 기준) ──────────────
-    const weekTexts = [
-      ...(weekDiaryData ?? []).map(d => d.content),
-      ...(chatLogs ?? []).map(c => c.content),
+    // ── TOP 5 긍정/부정 단어 분석 (최근 4주 누적) ──────────────
+    const fourWeekStart = new Date(weekDates[0])
+    fourWeekStart.setDate(fourWeekStart.getDate() - 21)
+    const fourWeekStartStr = `${fourWeekStart.getFullYear()}-${String(fourWeekStart.getMonth()+1).padStart(2,'0')}-${String(fourWeekStart.getDate()).padStart(2,'0')}`
+
+    const [{ data: recentDiaries }, { data: recentChats }] = await Promise.all([
+      supabase.from('diary').select('content')
+        .eq('user_id', uid)
+        .gte('date', fourWeekStartStr)
+        .lte('date', weekDates[6]),
+      supabase.from('chat_logs').select('content')
+        .eq('user_id', uid).eq('role', 'user')
+        .gte('created_at', fourWeekStartStr + 'T00:00:00.000Z')
+        .lte('created_at', weekDates[6] + 'T23:59:59.999Z'),
+    ])
+    const recentTexts = [
+      ...(recentDiaries ?? []).map(d => d.content),
+      ...(recentChats ?? []).map(c => c.content),
     ]
-    const posWords = extractWordsByType(weekTexts, 'positive', 5)
-    const negWords = extractWordsByType(weekTexts, 'negative', 5)
+    const posWords = extractWordsByType(recentTexts, 'positive', 5)
+    const negWords = extractWordsByType(recentTexts, 'negative', 5)
     setTopPosWords(posWords)
     setTopNegWords(negWords)
 
