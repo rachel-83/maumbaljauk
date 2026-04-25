@@ -5,6 +5,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -46,72 +47,134 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6">
-      {/* 로고 */}
-      <div className="mb-10 text-center fade-up">
-        <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-primary-500 flex items-center justify-center shadow-lg shadow-primary-200">
-          <span className="text-4xl">🐾</span>
+    <div
+      className="min-h-dvh flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #e8e4f8 0%, #f0eaff 40%, #fce4ec 100%)' }}
+    >
+      {/* 배경 장식 원 */}
+      <div className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #b39ddb, transparent)', transform: 'translate(-30%, -30%)' }} />
+      <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #f48fb1, transparent)', transform: 'translate(30%, 30%)' }} />
+
+      {/* 로고 영역 */}
+      <div className="mb-8 text-center relative">
+        {/* 장식 이모지 */}
+        <span className="absolute text-lg" style={{ top: -8, left: -24, opacity: 0.7 }}>💜</span>
+        <span className="absolute text-sm" style={{ top: 0, right: -20, opacity: 0.6 }}>✦</span>
+        <span className="absolute text-base" style={{ top: 20, left: -32, opacity: 0.5 }}>✦</span>
+        <span className="absolute text-lg" style={{ top: 4, right: -30, opacity: 0.7 }}>🩷</span>
+        <span className="absolute text-sm" style={{ bottom: 20, left: -16, opacity: 0.5 }}>✨</span>
+        <span className="absolute text-sm" style={{ bottom: 16, right: -14, opacity: 0.6 }}>✨</span>
+
+        {/* 아이콘 */}
+        <div
+          className="w-24 h-24 mx-auto mb-4 rounded-3xl flex items-center justify-center shadow-xl"
+          style={{ background: 'linear-gradient(135deg, #9575cd 0%, #7e57c2 100%)', boxShadow: '0 8px 32px rgba(126,87,194,0.35)' }}
+        >
+          <span className="text-5xl">🐾</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800">마음발자국</h1>
-        <p className="text-xs text-gray-400 mt-1">AI펫과 편하게 대화해봐</p>
+
+        <h1 className="text-3xl font-extrabold text-gray-800 tracking-tight">마음발자국</h1>
+        <p className="text-sm text-gray-500 mt-1.5">AI펫과 편하게 대화해봐</p>
       </div>
 
       {/* 카드 */}
-      <div className="w-full max-w-xs glass rounded-3xl p-6 shadow-lg shadow-gray-200/40 fade-up">
+      <div className="w-full max-w-sm bg-white/85 backdrop-blur-sm rounded-3xl p-6 shadow-xl shadow-purple-100/60">
         {/* 탭 */}
-        <div className="flex bg-gray-100/60 rounded-2xl p-1 mb-6">
-          {['signup', 'login'].map(m => (
+        <div className="flex bg-gray-100/70 rounded-2xl p-1 mb-6 gap-1">
+          {[
+            { key: 'signup', label: '회원가입', icon: '🐾' },
+            { key: 'login',  label: '로그인',   icon: '🐱' },
+          ].map(m => (
             <button
-              key={m}
-              onClick={() => { setMode(m); setMessage('') }}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                mode === m
-                  ? 'bg-white text-primary-600 shadow-sm'
+              key={m.key}
+              onClick={() => { setMode(m.key); setMessage('') }}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                mode === m.key
+                  ? 'bg-white text-primary-600 shadow-md'
                   : 'text-gray-400'
               }`}
             >
-              {m === 'signup' ? '회원가입' : '로그인'}
+              <span>{m.icon}</span>
+              {m.label}
             </button>
           ))}
         </div>
 
         {/* 폼 */}
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="email"
-            placeholder="이메일"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-3.5 rounded-2xl bg-white/80 border border-gray-200/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 transition-all"
-          />
-          <input
-            type="password"
-            placeholder="비밀번호 (6자 이상)"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full px-4 py-3.5 rounded-2xl bg-white/80 border border-gray-200/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 transition-all"
-          />
+          {/* 이메일 */}
+          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 gap-3 focus-within:ring-2 focus-within:ring-primary-300 transition-all">
+            <span className="text-gray-400 text-base flex-shrink-0">✉️</span>
+            <input
+              type="email"
+              placeholder="이메일"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
+            />
+          </div>
+
+          {/* 비밀번호 */}
+          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 gap-3 focus-within:ring-2 focus-within:ring-primary-300 transition-all">
+            <span className="text-gray-400 text-base flex-shrink-0">🔒</span>
+            <input
+              type={showPw ? 'text' : 'password'}
+              placeholder="비밀번호 (6자 이상)"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="flex-1 bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw(v => !v)}
+              className="text-gray-400 text-base flex-shrink-0"
+            >
+              {showPw ? '🙈' : '👁️'}
+            </button>
+          </div>
 
           {message && (
             <p className="text-xs text-center text-coral-500 px-2 whitespace-pre-wrap leading-relaxed">{message}</p>
           )}
 
+          {/* 버튼 */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white rounded-2xl text-sm font-bold disabled:opacity-60 shadow-md shadow-primary-200 active:scale-[0.98] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold text-white disabled:opacity-60 active:scale-[0.98] transition-all"
+            style={{ background: 'linear-gradient(135deg, #7e57c2 0%, #9575cd 100%)', boxShadow: '0 4px 16px rgba(126,87,194,0.4)' }}
           >
-            {loading ? '잠깐만...' : mode === 'login' ? '대화하러가기' : '가입하기'}
+            {loading ? '잠깐만...' : mode === 'login' ? (
+              <><span>대화하러가기</span><span className="text-lg">🐾</span></>
+            ) : (
+              <><span>가입하기</span><span className="text-lg">✨</span></>
+            )}
           </button>
         </form>
       </div>
 
-      <p className="text-[10px] text-gray-400 mt-8 text-center px-6">
-        교육 공공데이터 AI활용 프로젝트
-      </p>
+      {/* 하단 캐릭터 */}
+      <div className="flex items-end justify-center gap-4 mt-6 w-full max-w-sm px-4">
+        <img
+          src="/assets/characters/dog_happy.png"
+          alt="강아지"
+          className="w-24 h-24 object-contain drop-shadow-md"
+          style={{ transform: 'scaleX(-1)' }}
+        />
+        <div className="flex flex-col items-center gap-1 mb-2">
+          <span className="text-2xl">🩷</span>
+          <span className="text-gray-400 text-[10px] font-medium">교육 공공데이터 AI활용 프로젝트</span>
+          <span className="text-base">🐾</span>
+        </div>
+        <img
+          src="/assets/characters/cat_happy.png"
+          alt="고양이"
+          className="w-24 h-24 object-contain drop-shadow-md"
+        />
+      </div>
     </div>
   )
 }
