@@ -262,17 +262,13 @@ export default function ReportPage() {
     // ── 반려동물 체험 추천 트리거 체크 ──────────────────────
     checkPetRecommendation(weekDiaryData ?? [], chatLogs ?? [], weekDates)
 
-    // ── TOP 5 긍정/부정 단어 분석 (전체 기간) ──────────────
-    const [{ data: allDiaries }, { data: allChats }] = await Promise.all([
-      supabase.from('diary').select('content').eq('user_id', uid),
-      supabase.from('chat_logs').select('content').eq('user_id', uid).eq('role', 'user'),
-    ])
-    const allTexts = [
-      ...(allDiaries ?? []).map(d => d.content),
-      ...(allChats ?? []).map(c => c.content),
+    // ── TOP 5 긍정/부정 단어 분석 (해당 주 기준) ──────────────
+    const weekTexts = [
+      ...(weekDiaryData ?? []).map(d => d.content),
+      ...(chatLogs ?? []).map(c => c.content),
     ]
-    const posWords = extractWordsByType(allTexts, 'positive', 5)
-    const negWords = extractWordsByType(allTexts, 'negative', 5)
+    const posWords = extractWordsByType(weekTexts, 'positive', 5)
+    const negWords = extractWordsByType(weekTexts, 'negative', 5)
     setTopPosWords(posWords)
     setTopNegWords(negWords)
 
@@ -554,7 +550,7 @@ export default function ReportPage() {
           title="🌟 자주 쓴 긍정 단어 TOP 5"
           words={topPosWords}
           colors={['#6BB5A6', '#52C4AF', '#3DBDA6', '#2EB59D', '#1FAD94']}
-          sub="전체 일기 + 대화 기준"
+          sub={weekOffset === 0 ? '이번 주 일기 + 대화 기준' : '해당 주 일기 + 대화 기준'}
           empty="긍정적인 말을 더 써봐! 📝"
         />
       </div>
@@ -565,7 +561,7 @@ export default function ReportPage() {
           title="🌧 자주 쓴 부정 단어 TOP 5"
           words={topNegWords}
           colors={['#A0B8E8', '#8FAADE', '#7E9CD4', '#6D8ECA', '#5C80C0']}
-          sub="전체 일기 + 대화 기준"
+          sub={weekOffset === 0 ? '이번 주 일기 + 대화 기준' : '해당 주 일기 + 대화 기준'}
           empty="부정적인 단어가 없어, 잘 지내고 있구나! 💚"
         />
       </div>
