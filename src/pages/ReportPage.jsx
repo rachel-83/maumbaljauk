@@ -401,7 +401,7 @@ export default function ReportPage() {
       <h1 className="text-xl font-bold text-gray-800 mb-3">📊 주간 감정 레포트</h1>
 
       {/* 주차 네비게이터 */}
-      <div className="flex items-center justify-between mb-5 glass rounded-2xl px-3 py-2 shadow-sm">
+      <div className="flex items-center justify-between mb-5 glass rounded-2xl px-3 py-2 shadow-sm" style={{ position: 'relative' }}>
         <button
           onClick={() => setWeekOffset(w => w - 1)}
           className="w-8 h-8 flex items-center justify-center rounded-full text-primary-600 hover:bg-primary-50 active:scale-95 transition-all"
@@ -413,12 +413,21 @@ export default function ReportPage() {
           </p>
           <p className="text-[10px] text-gray-400">{formatWeekRange(getWeekDateStrs(weekOffset))}</p>
         </div>
-        <button
-          onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
-          disabled={weekOffset >= 0}
-          className="w-8 h-8 flex items-center justify-center rounded-full text-primary-600 hover:bg-primary-50 active:scale-95 transition-all disabled:opacity-30"
-          aria-label="다음 주"
-        >›</button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
+            disabled={weekOffset >= 0}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-primary-600 hover:bg-primary-50 active:scale-95 transition-all disabled:opacity-30"
+            aria-label="다음 주"
+          >›</button>
+          <button
+            onClick={() => loadData()}
+            disabled={loading}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-30"
+            aria-label="새로고침"
+            title="데이터 새로고침"
+          >↺</button>
+        </div>
       </div>
 
       {/* AI 한마디 */}
