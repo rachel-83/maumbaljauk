@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { callClaude, REPORT_SYSTEM_PROMPT, WEEKLY_ANALYSIS_PROMPT } from '../lib/claude'
 import { supabase } from '../lib/supabase'
@@ -153,9 +153,24 @@ function WordRankCard({ title, words, colors, sub, empty }) {
   )
 }
 
+// 마크다운 특수문자 제거
+function stripMarkdown(text) {
+  return text
+    .replace(/^#{1,6}\s*/gm, '')          // ## 헤더
+    .replace(/\*\*(.*?)\*\*/g, '$1')       // **볼드**
+    .replace(/\*(.*?)\*/g, '$1')           // *이탤릭*
+    .replace(/`{1,3}(.*?)`{1,3}/g, '$1')  // `코드`
+    .replace(/^>\s*/gm, '')               // > 인용
+    .replace(/^-{3,}$/gm, '')             // --- 구분선
+    .replace(/^[*-]\s+/gm, '• ')          // - 목록
+    .replace(/\n{3,}/g, '\n\n')           // 과도한 줄바꿈
+    .trim()
+}
+
 export default function ReportPage() {
   const { session } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [weekOffset,  setWeekOffset]  = useState(0)  // 0=이번주, -1=지난주
   const [weekData,    setWeekData]    = useState([])
   const [emotionDist, setEmotionDist] = useState([])
@@ -178,7 +193,7 @@ export default function ReportPage() {
     if (localStorage.getItem(key)) setDismissed(true)
   }, [])
 
-  useEffect(() => { if (session) loadData() }, [session, weekOffset])
+  useEffect(() => { if (session) loadData() }, [session, weekOffset, location.key])
 
   async function loadData() {
     setLoading(true)
@@ -350,7 +365,7 @@ export default function ReportPage() {
 `.trim()
 
       const result = await callClaude(WEEKLY_ANALYSIS_PROMPT, [{ role: 'user', content: input }], 400)
-      setWeeklyAnalysis(result)
+      setWeeklyAnalysis(stripMarkdown(result))
     } catch {
       setWeeklyAnalysis('이번 주 데이터를 분석했어. 꾸준히 기록해줘서 고마워 💚')
     }
@@ -364,7 +379,7 @@ export default function ReportPage() {
       if (!hasData) { setAiMessage('아직 이번 주 기록이 없어. 오늘 일기를 써봐! 💚'); setAiLoading(false); return }
       const summary = `이번 주 감정(요일:점수): ${bars.map(b => `${b.day}:${b.score}`).join(', ')}. 주요 감정: ${topTags.slice(0,3).map(([t])=>t).join(', ') || '없음'}`
       const msg = await callClaude(REPORT_SYSTEM_PROMPT, [{ role: 'user', content: summary }], 150)
-      setAiMessage(msg)
+      setAiMessage(stripMarkdown(msg))
     } catch {
       setAiMessage('이번 주도 감정을 기록해줘서 고마워 💚')
     }
