@@ -15,7 +15,11 @@ export default function AuthPage() {
     setMessage('')
 
     if (mode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({ email, password })
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: 'https://maumbaljauk.vercel.app' },
+      })
       if (error) {
         if (error.message.includes('already registered') || error.message.includes('already been registered'))
           setMessage('이미 가입된 이메일이에요. 로그인해줘 😊')
