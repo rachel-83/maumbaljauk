@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import CounselorStatus from '../components/CounselorStatus'
 const ShelterMap = lazy(() => import('../components/ShelterMap'))
 const AnimalExperienceMap = lazy(() => import('../components/AnimalExperienceMap'))
+const YouthCenterMap = lazy(() => import('../components/YouthCenterMap'))
 const COUNSELING = [
   {
     name: '청소년 전화 1388',
@@ -120,6 +121,19 @@ export default function ExpertPage() {
         <div className="mb-6">
           <CounselorStatus schoolName={profile?.school_name} />
         </div>
+      )}
+
+      {/* 청소년상담복지센터 지도 */}
+      {tab === 'counseling' && (
+        <Suspense fallback={
+          <div className="mb-5 h-48 flex items-center justify-center bg-gray-50 rounded-2xl">
+            <p className="text-xs text-gray-400 animate-pulse">센터 정보 불러오는 중...</p>
+          </div>
+        }>
+          <div className="mb-5">
+            <YouthCenterMap />
+          </div>
+        </Suspense>
       )}
 
       {/* 카드 목록 */}
