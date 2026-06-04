@@ -88,11 +88,18 @@ export default function TeacherDashboard() {
   async function loadWorries() {
     const thisWeekFrom = getISONDaysAgo(7)
 
+    console.log('[loadWorries] 교사 프로필:', { schoolCode, myGrade, myClass })
+
     const { data, error } = await supabase.rpc('get_teacher_worries')
-    if (error) { console.error('get_teacher_worries:', error); setWorries([]); return }
+
+    console.log('[loadWorries] RPC 결과 raw:', { data, error })
+
+    if (error) { console.error('[loadWorries] RPC 오류:', error); setWorries([]); return }
 
     const enriched = (data ?? [])
       .map(w => ({ ...w, week: w.created_at >= thisWeekFrom ? 'this' : 'last' }))
+
+    console.log('[loadWorries] 최종 worries 목록 (%d건):', enriched.length, enriched)
 
     setWorries(enriched)
   }
@@ -155,8 +162,10 @@ export default function TeacherDashboard() {
             <span className="text-[9px] text-gray-400 font-normal">
               {w.target_type === 'counselor' ? '상담' : '담임'}
             </span>
-            {w.teacher_replied
-              ? <span className="text-[9px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-semibold">답변 완료</span>
+            {w.status === 'replied'
+              ? <span className="text-[9px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-semibold">답변완료</span>
+              : w.status === 'read'
+              ? <span className="text-[9px] bg-blue-100 text-blue-500 px-1.5 py-0.5 rounded-full font-semibold">읽음</span>
               : <span className="text-[9px] bg-orange-100 text-orange-500 px-1.5 py-0.5 rounded-full font-semibold">미답변</span>
             }
           </div>
