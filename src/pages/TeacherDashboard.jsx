@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { callClaude } from '../lib/claude'
 import SchoolEmotionChart from '../components/SchoolEmotionChart'
 import WorryThread from '../components/WorryThread'
 
@@ -63,6 +64,8 @@ export default function TeacherDashboard() {
   const [worries, setWorries] = useState([])
   const [worryThread, setWorryThread] = useState(null)
   const [selectedMonth, setSelectedMonth] = useState(null)
+  const [aiReport, setAiReport] = useState(null)   // null | 'loading' | 'empty' | { summary, topTags }
+  const [aiReportLoading, setAiReportLoading] = useState(false)
 
   const schoolCode = profile?.school_code
   const myGrade    = profile?.grade
@@ -85,6 +88,7 @@ export default function TeacherDashboard() {
     setLoading(true)
     await Promise.all([loadStats(), loadWorries()])
     setLoading(false)
+    loadAIReport() // 메인 로딩 완료 후 비동기 실행 (자체 로딩 상태 관리)
   }
 
   // ── 감정 통계 (이번 주 + 지난 주) ───────────────────────────
@@ -115,6 +119,44 @@ export default function TeacherDashboard() {
     const { data, error } = await supabase.rpc('get_teacher_worries')
     if (error) { console.error('get_teacher_worries:', error); setWorries([]); return }
     setWorries(data ?? [])
+  }
+
+  // ── AI 감정 리포트 ──────────────────────────────────────────
+  async function loadAIReport() {
+    setAiReportLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('get_class_emotion_tags')
+      if (error) throw error
+
+      if (!data || data.length === 0) { setAiReport('empty'); return }
+
+      // 동일 태그 빈도 합산
+      const tagMap = {}
+      data.forEach(({ tag, cnt }) => { tagMap[tag] = (tagMap[tag] ?? 0) + Number(cnt) })
+
+      const sorted = Object.entries(tagMap).sort((a, b) => b[1] - a[1])
+      const topTags = sorted.slice(0, 3).map(([t]) => t)
+      const tagSummary = sorted.slice(0, 10).map(([t, c]) => `${t}: ${c}회`).join(', ')
+
+      const systemPrompt = `초등/중학교 담임교사에게 보내는 학급 감정 분석 요약이야.
+3문장 이내로 간결하게 작성해줘.
+주요 감정 흐름, 특이사항, 교사가 취할 수 있는 행동 1가지를 포함해줘.
+따뜻하고 전문적인 어조로.
+마크다운, 번호 목록, 제목 없이 자연스러운 문장으로만 써줘.`
+
+      const summary = await callClaude(
+        systemPrompt,
+        [{ role: 'user', content: `최근 7일 학급 감정 태그 빈도: ${tagSummary}` }],
+        256
+      )
+
+      setAiReport({ summary, topTags })
+    } catch (e) {
+      console.error('AI report:', e)
+      setAiReport('empty')
+    } finally {
+      setAiReportLoading(false)
+    }
   }
 
   async function openWorry(worry) {
@@ -215,6 +257,40 @@ export default function TeacherDashboard() {
       </header>
 
       <main className="px-4 py-5 space-y-4">
+        {/* AI 감정 리포트 */}
+        {aiReportLoading ? (
+          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 animate-pulse">
+            <div className="h-3 bg-gray-200 rounded w-2/5 mb-3" />
+            <div className="h-3 bg-gray-200 rounded w-full mb-2" />
+            <div className="h-3 bg-gray-200 rounded w-4/5 mb-2" />
+            <div className="h-3 bg-gray-200 rounded w-3/5 mb-4" />
+            <div className="flex gap-2">
+              <div className="h-5 bg-gray-200 rounded-full w-14" />
+              <div className="h-5 bg-gray-200 rounded-full w-14" />
+              <div className="h-5 bg-gray-200 rounded-full w-14" />
+            </div>
+          </div>
+        ) : aiReport && aiReport !== 'empty' ? (
+          <div className="bg-gradient-to-br from-primary-50 to-blue-50 rounded-3xl p-4 shadow-sm border border-primary-100">
+            <p className="text-xs font-bold text-primary-600 mb-2">이번 주 우리 반 감정 리포트 ✨</p>
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{aiReport.summary}</p>
+            {aiReport.topTags.length > 0 && (
+              <div className="flex gap-1.5 mt-3 flex-wrap">
+                {aiReport.topTags.map(tag => (
+                  <span key={tag} className="text-[11px] bg-white text-primary-600 border border-primary-200 px-2.5 py-1 rounded-full font-semibold">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+            <p className="text-xs font-bold text-gray-500 mb-2">이번 주 우리 반 감정 리포트 ✨</p>
+            <p className="text-xs text-gray-400 text-center py-3">이번 주 감정 데이터가 아직 없어요</p>
+          </div>
+        )}
+
         {/* 참여 통계 */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
