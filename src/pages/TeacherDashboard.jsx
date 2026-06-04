@@ -30,7 +30,16 @@ function getMonthKey(iso) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
 }
 function getMonthLabel(key) {
-  return `${parseInt(key.split('-')[1])}월`
+  const [y, m] = key.split('-')
+  return `${y}년 ${parseInt(m)}월`
+}
+function prevMonthKey(key) {
+  const [y, m] = key.split('-').map(Number)
+  return m === 1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`
+}
+function nextMonthKey(key) {
+  const [y, m] = key.split('-').map(Number)
+  return m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2,'0')}`
 }
 function buildChart(diaries) {
   const moodCount = {}
@@ -230,39 +239,34 @@ export default function TeacherDashboard() {
             <p className="text-[10px] text-gray-400">익명 보호</p>
           </div>
 
-          {totalWorries === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-6">아직 전달된 고민이 없어요 💚</p>
-          ) : (
+          {selectedMonth && (
             <>
-              {/* 월별 탭 */}
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-2 mb-3">
-                {months.map(month => {
-                  const count = worries.filter(w => getMonthKey(w.created_at) === month).length
-                  const isSelected = selectedMonth === month
-                  return (
-                    <button
-                      key={month}
-                      onClick={() => setSelectedMonth(month)}
-                      className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-                        isSelected ? 'bg-primary-500 text-white shadow-sm' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {getMonthLabel(month)}
-                      <span className={`text-[10px] font-bold ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
-                        {count}
-                      </span>
-                    </button>
-                  )
-                })}
+              {/* 월 네비게이션 */}
+              <div className="flex items-center justify-between mb-3">
+                <button
+                  onClick={() => setSelectedMonth(prevMonthKey(selectedMonth))}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-base active:scale-95 transition-transform"
+                >
+                  ‹
+                </button>
+                <p className="text-sm font-bold text-gray-700">{getMonthLabel(selectedMonth)}</p>
+                <button
+                  onClick={() => setSelectedMonth(nextMonthKey(selectedMonth))}
+                  disabled={selectedMonth >= getMonthKey(new Date().toISOString())}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 text-base active:scale-95 transition-transform disabled:opacity-30"
+                >
+                  ›
+                </button>
               </div>
 
               {/* 선택 월 목록 — 미답변 먼저 */}
-              <div className="space-y-2">
-                {filteredWorries.filter(w => w.status !== 'replied').map(w => <WorryCard key={w.id} w={w} />)}
-                {filteredWorries.filter(w => w.status === 'replied').map(w => <WorryCard key={w.id} w={w} />)}
-              </div>
-              {filteredWorries.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-4">이 달에 전달된 고민이 없어요</p>
+              {filteredWorries.length === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-6">이 달에 전달된 고민이 없어요 💚</p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredWorries.filter(w => w.status !== 'replied').map(w => <WorryCard key={w.id} w={w} />)}
+                  {filteredWorries.filter(w => w.status === 'replied').map(w => <WorryCard key={w.id} w={w} />)}
+                </div>
               )}
             </>
           )}
