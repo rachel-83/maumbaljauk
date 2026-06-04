@@ -86,14 +86,12 @@ export default function TeacherDashboard() {
 
   // ── 고민 수신함 (RPC 사용 — 직접 쿼리는 RLS에 막힘) ──────────
   async function loadWorries() {
-    const lastWeekFrom = getISONDaysAgo(14)
     const thisWeekFrom = getISONDaysAgo(7)
 
     const { data, error } = await supabase.rpc('get_teacher_worries')
     if (error) { console.error('get_teacher_worries:', error); setWorries([]); return }
 
     const enriched = (data ?? [])
-      .filter(w => w.created_at >= lastWeekFrom)
       .map(w => ({ ...w, week: w.created_at >= thisWeekFrom ? 'this' : 'last' }))
 
     setWorries(enriched)
