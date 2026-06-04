@@ -25,6 +25,13 @@ function getISONDaysAgo(n) {
   d.setDate(d.getDate() - n)
   return d.toISOString()
 }
+function getMonthKey(iso) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
+}
+function getMonthLabel(key) {
+  return `${parseInt(key.split('-')[1])}월`
+}
 function buildChart(diaries) {
   const moodCount = {}
   diaries.forEach(d => {
@@ -46,6 +53,7 @@ export default function TeacherDashboard() {
   const [activeStudents, setActiveStudents] = useState(0)
   const [worries, setWorries] = useState([])
   const [worryThread, setWorryThread] = useState(null)
+  const [selectedMonth, setSelectedMonth] = useState(null)
 
   const schoolCode = profile?.school_code
   const myGrade    = profile?.grade
@@ -54,6 +62,15 @@ export default function TeacherDashboard() {
   useEffect(() => {
     if (schoolCode) loadAll()
   }, [schoolCode])
+
+  // 데이터 로드 후 가장 최근 월 자동 선택
+  useEffect(() => {
+    if (worries.length === 0) return
+    const months = [...new Set(worries.map(w => getMonthKey(w.created_at)))].sort().reverse()
+    if (!selectedMonth || !months.includes(selectedMonth)) {
+      setSelectedMonth(months[0])
+    }
+  }, [worries])
 
   async function loadAll() {
     setLoading(true)
@@ -86,22 +103,9 @@ export default function TeacherDashboard() {
 
   // ── 고민 수신함 (RPC 사용 — 직접 쿼리는 RLS에 막힘) ──────────
   async function loadWorries() {
-    const thisWeekFrom = getISONDaysAgo(7)
-
-    console.log('[loadWorries] 교사 프로필:', { schoolCode, myGrade, myClass })
-
     const { data, error } = await supabase.rpc('get_teacher_worries')
-
-    console.log('[loadWorries] RPC 결과 raw:', { data, error })
-
-    if (error) { console.error('[loadWorries] RPC 오류:', error); setWorries([]); return }
-
-    const enriched = (data ?? [])
-      .map(w => ({ ...w, week: w.created_at >= thisWeekFrom ? 'this' : 'last' }))
-
-    console.log('[loadWorries] 최종 worries 목록 (%d건):', enriched.length, enriched)
-
-    setWorries(enriched)
+    if (error) { console.error('get_teacher_worries:', error); setWorries([]); return }
+    setWorries(data ?? [])
   }
 
   async function openWorry(worry) {
@@ -187,9 +191,9 @@ export default function TeacherDashboard() {
     )
   }
 
-  const thisWeekWorries = worries.filter(w => w.week === 'this')
-  const lastWeekWorries = worries.filter(w => w.week === 'last')
   const totalWorries = worries.length
+  const months = [...new Set(worries.map(w => getMonthKey(w.created_at)))].sort().reverse()
+  const filteredWorries = worries.filter(w => getMonthKey(w.created_at) === selectedMonth)
 
   // ── 기본 대시보드 ─────────────────────────────────────────
   return (
@@ -229,47 +233,38 @@ export default function TeacherDashboard() {
           {totalWorries === 0 ? (
             <p className="text-xs text-gray-400 text-center py-6">아직 전달된 고민이 없어요 💚</p>
           ) : (
-            <div className="space-y-4">
-              {/* 이번 주 */}
-              {thisWeekWorries.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
-                      이번 주 {thisWeekWorries.length}건
-                    </span>
-                    <span className="text-[10px] text-orange-500 font-semibold">
-                      미답변 {thisWeekWorries.filter(w => !w.teacher_replied).length}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {/* 미답변 먼저 */}
-                    {thisWeekWorries.filter(w => !w.teacher_replied).map(w => <WorryCard key={w.id} w={w} />)}
-                    {thisWeekWorries.filter(w => w.teacher_replied).map(w => <WorryCard key={w.id} w={w} />)}
-                  </div>
-                </div>
-              )}
-
-              {/* 지난 주 */}
-              {lastWeekWorries.length > 0 && (
-                <div>
-                  {thisWeekWorries.length > 0 && <div className="border-t border-gray-100 my-1" />}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                      지난 주 {lastWeekWorries.length}건
-                    </span>
-                    {lastWeekWorries.filter(w => !w.teacher_replied).length > 0 && (
-                      <span className="text-[10px] text-orange-500 font-semibold">
-                        미답변 {lastWeekWorries.filter(w => !w.teacher_replied).length}
+            <>
+              {/* 월별 탭 */}
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-2 mb-3">
+                {months.map(month => {
+                  const count = worries.filter(w => getMonthKey(w.created_at) === month).length
+                  const isSelected = selectedMonth === month
+                  return (
+                    <button
+                      key={month}
+                      onClick={() => setSelectedMonth(month)}
+                      className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                        isSelected ? 'bg-primary-500 text-white shadow-sm' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {getMonthLabel(month)}
+                      <span className={`text-[10px] font-bold ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
+                        {count}
                       </span>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    {lastWeekWorries.filter(w => !w.teacher_replied).map(w => <WorryCard key={w.id} w={w} />)}
-                    {lastWeekWorries.filter(w => w.teacher_replied).map(w => <WorryCard key={w.id} w={w} />)}
-                  </div>
-                </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* 선택 월 목록 — 미답변 먼저 */}
+              <div className="space-y-2">
+                {filteredWorries.filter(w => w.status !== 'replied').map(w => <WorryCard key={w.id} w={w} />)}
+                {filteredWorries.filter(w => w.status === 'replied').map(w => <WorryCard key={w.id} w={w} />)}
+              </div>
+              {filteredWorries.length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-4">이 달에 전달된 고민이 없어요</p>
               )}
-            </div>
+            </>
           )}
         </div>
 
