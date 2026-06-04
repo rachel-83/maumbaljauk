@@ -84,61 +84,25 @@ export default function TeacherDashboard() {
     setLastWeekData(buildChart(lastWeek))
   }
 
-  // ── 고민 수신함 (이번 주 + 지난 주, 교사 답변 여부 포함) ──────
+  // ── 고민 수신함 (RPC 사용 — 직접 쿼리는 RLS에 막힘) ──────────
   async function loadWorries() {
     const lastWeekFrom = getISONDaysAgo(14)
     const thisWeekFrom = getISONDaysAgo(7)
 
-    const { data: allWorries } = await supabase
-      .from('worries')
-      .select('*')
-      .eq('school_code', schoolCode)
-      .gte('created_at', lastWeekFrom)
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.rpc('get_teacher_worries')
+    if (error) { console.error('get_teacher_worries:', error); setWorries([]); return }
 
-    const filtered = (allWorries ?? []).filter(w =>
-      w.target_type === 'counselor' ||
-      (w.target_type === 'homeroom' && w.grade === myGrade && w.class_num === myClass)
-    )
-
-    if (filtered.length === 0) { setWorries([]); return }
-
-    // 메시지 일괄 조회 (N+1 방지)
-    const worryIds = filtered.map(w => w.id)
-    const { data: allMsgs } = await supabase
-      .from('worry_messages')
-      .select('worry_id, sender_role')
-      .in('worry_id', worryIds)
-
-    const msgsByWorry = {}
-    ;(allMsgs ?? []).forEach(m => {
-      if (!msgsByWorry[m.worry_id]) msgsByWorry[m.worry_id] = { total: 0, teacher: 0 }
-      msgsByWorry[m.worry_id].total++
-      if (m.sender_role === 'teacher') msgsByWorry[m.worry_id].teacher++
-    })
-
-    const enriched = filtered.map(w => {
-      const msgs = msgsByWorry[w.id] || { total: 0, teacher: 0 }
-      return {
-        ...w,
-        anon_id: anonHash(w.student_id),
-        preview: w.content.slice(0, 80),
-        msg_count: msgs.total,
-        teacher_replied: msgs.teacher > 0,
-        week: w.created_at >= thisWeekFrom ? 'this' : 'last',
-      }
-    })
+    const enriched = (data ?? [])
+      .filter(w => w.created_at >= lastWeekFrom)
+      .map(w => ({ ...w, week: w.created_at >= thisWeekFrom ? 'this' : 'last' }))
 
     setWorries(enriched)
   }
 
   async function openWorry(worry) {
-    const { data: msgs } = await supabase
-      .from('worry_messages')
-      .select('*')
-      .eq('worry_id', worry.id)
-      .order('created_at', { ascending: true })
-    setWorryThread({ ...worry, messages: msgs ?? [] })
+    const { data, error } = await supabase.rpc('get_worry_thread', { p_worry_id: worry.id })
+    if (error) { console.error('get_worry_thread:', error); return }
+    setWorryThread({ ...worry, ...data, messages: data?.messages ?? [] })
   }
 
   if (loading) {
@@ -152,15 +116,20 @@ export default function TeacherDashboard() {
   // ── 고민 스레드 상세 ──────────────────────────────────────
   if (worryThread) {
     async function handleTeacherReply(content, replyToId) {
-      const uid = (await supabase.auth.getUser()).data.user.id
-      const row = { worry_id: worryThread.id, sender_role: 'teacher', sender_id: uid, content }
-      if (replyToId) row.reply_to = replyToId
-      await supabase.from('worry_messages').insert(row)
-      await supabase.from('worries').update({ updated_at: new Date().toISOString() }).eq('id', worryThread.id)
-      const { data: msgs } = await supabase.from('worry_messages')
-        .select('*').eq('worry_id', worryThread.id).order('created_at', { ascending: true })
-      setWorryThread(prev => ({ ...prev, messages: msgs ?? [] }))
+      const { error } = await supabase.rpc('reply_to_worry', {
+        p_worry_id: worryThread.id,
+        p_content:  content,
+        ...(replyToId ? { p_reply_to: replyToId } : {}),
+      })
+      if (error) { console.error('reply_to_worry:', error); return }
+      const { data } = await supabase.rpc('get_worry_thread', { p_worry_id: worryThread.id })
+      setWorryThread(prev => ({ ...prev, messages: data?.messages ?? [] }))
       await loadWorries()
+    }
+
+    async function refreshThread() {
+      const { data } = await supabase.rpc('get_worry_thread', { p_worry_id: worryThread.id })
+      setWorryThread(prev => ({ ...prev, ...data, messages: data?.messages ?? [] }))
     }
 
     return (
@@ -172,11 +141,7 @@ export default function TeacherDashboard() {
         otherLabel={`익명 #${worryThread.anon_id}`}
         onSendReply={handleTeacherReply}
         onBack={() => setWorryThread(null)}
-        onRefresh={async () => {
-          const { data: msgs } = await supabase.from('worry_messages')
-            .select('*').eq('worry_id', worryThread.id).order('created_at', { ascending: true })
-          setWorryThread(prev => ({ ...prev, messages: msgs ?? [] }))
-        }}
+        onRefresh={refreshThread}
       />
     )
   }
