@@ -244,7 +244,7 @@ export default function WorryThread({
                   onClick={onMarkReplied}
                   className="text-[9px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-semibold active:scale-95 transition-transform"
                 >
-                  답변완료 표시
+                  답변완료
                 </button>
               )
             ) : (
