@@ -28,7 +28,7 @@ export default function ExpertBanner() {
 
   return (
     <button
-      onClick={() => navigate('/student/expert')}
+      onClick={() => navigate(hasCounselor ? '/student/diary/concern' : '/student/expert')}
       className="w-full flex items-center gap-3 px-4 py-3 glass rounded-2xl text-left shadow-sm"
       aria-label="전문가 연결 탭으로 이동"
     >
