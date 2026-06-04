@@ -128,7 +128,15 @@ export default function TeacherDashboard() {
       })
       if (error) { console.error('reply_to_worry:', error); return }
       const { data } = await supabase.rpc('get_worry_thread', { p_worry_id: worryThread.id })
-      setWorryThread(prev => ({ ...prev, messages: data?.messages ?? [] }))
+      // data에 status 포함 → worryThread 전체 갱신
+      setWorryThread(prev => ({ ...prev, ...data, messages: data?.messages ?? [] }))
+      await loadWorries()
+    }
+
+    async function handleMarkReplied() {
+      const { error } = await supabase.rpc('mark_worry_replied', { p_worry_id: worryThread.id })
+      if (error) { console.error('mark_worry_replied:', error); return }
+      setWorryThread(prev => ({ ...prev, status: 'replied' }))
       await loadWorries()
     }
 
@@ -145,6 +153,7 @@ export default function TeacherDashboard() {
         viewerLabel="선생님 (나)"
         otherLabel={`익명 #${worryThread.anon_id}`}
         onSendReply={handleTeacherReply}
+        onMarkReplied={handleMarkReplied}
         onBack={() => setWorryThread(null)}
         onRefresh={refreshThread}
       />

@@ -7,7 +7,7 @@ function formatTime(iso) {
 }
 
 export default function WorryThread({
-  worry, messages, viewerRole, viewerLabel, otherLabel, onSendReply, onBack, onRefresh
+  worry, messages, viewerRole, viewerLabel, otherLabel, onSendReply, onMarkReplied, onBack, onRefresh
 }) {
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
@@ -236,10 +236,23 @@ export default function WorryThread({
         <div className="mt-2 flex items-center justify-between">
           <p className="text-sm font-bold text-gray-800">{'\uD83D\uDCAC'} {otherLabel}과 대화</p>
           <div className="flex items-center gap-1.5">
-            {messages.some(m => m.sender_role === 'teacher') ? (
-              <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">답변완료</span>
+            {viewerRole === 'teacher' ? (
+              worry.status === 'replied' ? (
+                <span className="text-[9px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-semibold">답변완료</span>
+              ) : (
+                <button
+                  onClick={onMarkReplied}
+                  className="text-[9px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-semibold active:scale-95 transition-transform"
+                >
+                  답변완료 표시
+                </button>
+              )
             ) : (
-              <span className="text-[9px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-semibold">답변 대기중</span>
+              messages.some(m => m.sender_role === 'teacher') ? (
+                <span className="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-semibold">답변완료</span>
+              ) : (
+                <span className="text-[9px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-semibold">답변 대기중</span>
+              )
             )}
             <span className="text-[9px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-semibold">익명 보호됨</span>
           </div>
